@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.routers import patient as patient_router
 from app.routers import auth as auth_router
 from app.database import engine
@@ -15,6 +16,15 @@ app = FastAPI(
     title="Patient Management System",
     description="A fully functional API to manage your patient records",
     version="1.0.0"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
 # Register routers

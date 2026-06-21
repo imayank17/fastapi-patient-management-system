@@ -63,7 +63,7 @@ def search_patient_by_name(name: str = Query(..., description='Name of the patie
     result = []
     for patient in patients:
         patient_data = PatientResponse.model_validate(patient)
-        result.append(patient_data.model_dump(exclude=['id']))
+        result.append(patient_data.model_dump())
 
     return result
 
@@ -78,7 +78,7 @@ def search_patient_by_city(city: str = Query(..., description='City of the patie
     result = []
     for patient in patients:
         patient_data = PatientResponse.model_validate(patient)
-        result.append(patient_data.model_dump(exclude=['id']))
+        result.append(patient_data.model_dump())
 
     return result
 
@@ -108,7 +108,7 @@ def sort_patients(sort_by: str = Query(..., description='Sort on the basis of he
     result = []
     for patient in patients:
         patient_data = PatientResponse.model_validate(patient)
-        result.append(patient_data.model_dump(exclude=['id']))
+        result.append(patient_data.model_dump())
 
     return result
 
