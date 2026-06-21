@@ -40,7 +40,7 @@ This project is separated into two distinct directories: `/backend` and `/fronte
 
 2. **Create a Virtual Environment:**
    ```bash
-   python -m venv venv
+   python3 -m venv venv
    ```
 
 3. **Activate the Virtual Environment:**
