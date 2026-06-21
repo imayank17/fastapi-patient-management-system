@@ -53,6 +53,21 @@ def search_patient(patient_id: str = Query(..., description='ID of the patient t
     return patient_data.model_dump(exclude=['id'])
 
 
+@router.get('/patients/search/name')
+def search_patient_by_name(name: str = Query(..., description='Name of the patient to search for'), db: Session = Depends(get_db)):
+    """Search for patients by name (case-insensitive, partial match)."""
+    # Look up patients using ilike for case-insensitive partial matching
+    patients = db.query(Patient).filter(Patient.name.ilike(f"%{name}%")).all()
+
+    # Return list of patient dicts (empty list if no matches)
+    result = []
+    for patient in patients:
+        patient_data = PatientResponse.model_validate(patient)
+        result.append(patient_data.model_dump(exclude=['id']))
+
+    return result
+
+
 @router.get('/sort')
 def sort_patients(sort_by: str = Query(..., description='Sort on the basis of height, weight or bmi'), order: str = Query('asc', description='sort in asc or desc order'), db: Session = Depends(get_db)):
     """Sort patients by a given field (height, weight, or bmi)."""
