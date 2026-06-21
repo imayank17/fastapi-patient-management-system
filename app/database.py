@@ -1,30 +1,39 @@
 """
 Database configuration module.
 
-Currently using JSON file storage. This module is a placeholder
-for future migration to SQLAlchemy + SQLite.
-
-Future setup will include:
-- SQLAlchemy engine and session
-- Base class for ORM models
-- Dependency injection for DB sessions
+Sets up SQLAlchemy with SQLite for the Patient Management System.
+Provides engine, session factory, Base class, and a dependency
+function for injecting DB sessions into route handlers.
 """
 
-import json
-import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Path to the JSON file (relative to where the app is run from)
-JSON_FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'patients.json')
+# SQLite database file will be created in the project root
+DATABASE_URL = "sqlite:///./patients.db"
+
+# Create the SQLAlchemy engine
+# check_same_thread=False is needed for SQLite with FastAPI (multi-threaded)
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+
+# Create a session factory - each call to SessionLocal() gives a new session
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base class for all SQLAlchemy models
+Base = declarative_base()
 
 
-def load_data():
-    """Load patient data from the JSON file."""
-    with open(JSON_FILE_PATH, 'r') as f:
-        data = json.load(f)
-    return data
-
-
-def save_data(data):
-    """Save patient data to the JSON file."""
-    with open(JSON_FILE_PATH, 'w') as f:
-        json.dump(data, f)
+def get_db():
+    """
+    Dependency function that provides a database session.
+    
+    Usage in routes:
+        def my_route(db: Session = Depends(get_db)):
+    
+    The session is automatically closed after the request is done.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

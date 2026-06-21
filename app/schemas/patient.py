@@ -1,9 +1,9 @@
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Optional
 
 
-# Schema for creating a new patient (used in POST requests)
-class Patient(BaseModel):
+# Schema for creating a new patient (used in POST /create)
+class PatientCreate(BaseModel):
 
     id: Annotated[str, Field(..., description='ID of the patient', examples=['P001'])]
     name: Annotated[str, Field(..., description='Name of the patient')]
@@ -13,33 +13,28 @@ class Patient(BaseModel):
     height: Annotated[float, Field(..., gt=0, description='Height of the patient in mtrs')]
     weight: Annotated[float, Field(..., gt=0, description='Weight of the patient in kgs')]
 
-    # Automatically calculate BMI from height and weight
-    @computed_field
-    @property
-    def bmi(self) -> float:
-        bmi = round(self.weight/(self.height**2),2)
-        return bmi
-    
-    # Automatically determine health verdict based on BMI
-    @computed_field
-    @property
-    def verdict(self) -> str:
 
-        if self.bmi < 18.5:
-            return 'Underweight'
-        elif self.bmi < 25:
-            return 'Normal'
-        elif self.bmi < 30:
-            return 'Normal'
-        else:
-            return 'Obese'
-        
-
-# Schema for updating an existing patient (all fields optional)
+# Schema for updating an existing patient (all fields optional, used in PUT /edit)
 class PatientUpdate(BaseModel):
     name: Annotated[Optional[str], Field(default=None)]
     city: Annotated[Optional[str], Field(default=None)]
     age: Annotated[Optional[int], Field(default=None, gt=0)]
-    gender: Annotated[Optional[Literal['male', 'female']], Field(default=None)]
+    gender: Annotated[Optional[Literal['male', 'female', 'others']], Field(default=None)]
     height: Annotated[Optional[float], Field(default=None, gt=0)]
     weight: Annotated[Optional[float], Field(default=None, gt=0)]
+
+
+# Schema for returning patient data in API responses
+class PatientResponse(BaseModel):
+    id: str
+    name: str
+    city: str
+    age: int
+    gender: str
+    height: float
+    weight: float
+    bmi: float
+    verdict: str
+
+    # Allow Pydantic to read data from SQLAlchemy model attributes
+    model_config = {"from_attributes": True}
