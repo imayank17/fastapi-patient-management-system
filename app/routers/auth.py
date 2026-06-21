@@ -4,7 +4,7 @@ import bcrypt
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.auth import UserCreate, UserResponse
+from app.schemas.auth import UserCreate, UserLogin, UserResponse
 
 # Create a router for authentication-related endpoints
 router = APIRouter()
@@ -15,6 +15,14 @@ def hash_password(password: str) -> str:
     password_bytes = password.encode('utf-8')
     hashed = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
     return hashed.decode('utf-8')
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a plain text password against a bcrypt hash."""
+    return bcrypt.checkpw(
+        plain_password.encode('utf-8'),
+        hashed_password.encode('utf-8')
+    )
 
 
 @router.post('/signup', response_model=UserResponse, status_code=201)
@@ -46,3 +54,22 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)  # refresh to get the auto-generated id
 
     return new_user
+
+
+@router.post('/login')
+def login(user: UserLogin, db: Session = Depends(get_db)):
+    """Login with email and password."""
+
+    # Find user by email
+    existing_user = db.query(User).filter(User.email == user.email).first()
+
+    # If email not found, return error
+    if existing_user is None:
+        raise HTTPException(status_code=401, detail='Invalid email or password')
+
+    # Verify the password against the stored hash
+    if not verify_password(user.password, existing_user.password):
+        raise HTTPException(status_code=401, detail='Invalid email or password')
+
+    # Login successful
+    return {'message': 'Login successful'}

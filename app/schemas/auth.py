@@ -9,6 +9,12 @@ class UserCreate(BaseModel):
     password: Annotated[str, Field(..., min_length=6, description='Password (min 6 characters)')]
 
 
+# Schema for user login (POST /login)
+class UserLogin(BaseModel):
+    email: Annotated[EmailStr, Field(..., description='Registered email address')]
+    password: Annotated[str, Field(..., description='Account password')]
+
+
 # Schema for returning user data in responses (excludes password)
 class UserResponse(BaseModel):
     id: int
